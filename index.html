@@ -1,0 +1,1705 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#3d6b52" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Semi-Monthly Budget Tracker</title>
+    <link id="manifestLink" rel="manifest" href="" />
+    <link id="appleTouchIcon" rel="apple-touch-icon" href="" />
+    <style>
+      :root {
+        --bg: #f7f7f5;
+        --card: #ffffff;
+        --ink: #1f1f1f;
+        --sub: #6b6b6b;
+        --line: #e5e5e0;
+        --accent: #3d6b52;
+        --accent-ink: #ffffff;
+        --danger: #a13f3f;
+        --good: #2f7d4f;
+        --bad: #a13f3f;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        box-sizing: border-box;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --bg: #17181a;
+          --card: #1f2123;
+          --ink: #eaeaea;
+          --sub: #9a9a9a;
+          --line: #33353a;
+          --accent: #6fae8c;
+          --accent-ink: #0f1a14;
+        }
+      }
+      :root[data-theme="dark"] {
+        --bg: #17181a;
+        --card: #1f2123;
+        --ink: #eaeaea;
+        --sub: #9a9a9a;
+        --line: #33353a;
+        --accent: #6fae8c;
+        --accent-ink: #0f1a14;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: env(safe-area-inset-top, 0px);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      body {
+        margin: 0;
+        overflow-x: hidden;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 14px;
+      }
+      .wrap {
+        width: 100%;
+        max-width: 1200px;
+        min-width: 0;
+        margin: 0 auto;
+        padding: 20px clamp(10px, 3vw, 24px) 60px;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .muted {
+        color: var(--sub);
+        font-size: 12px;
+        margin-bottom: 18px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 16px;
+        margin-bottom: 14px;
+      }
+      .card h2 {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--sub);
+        margin: 0 0 12px;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+      }
+      .row > * {
+        flex: 1;
+        min-width: 110px;
+      }
+      label {
+        display: block;
+        font-size: 11px;
+        color: var(--sub);
+        margin-bottom: 3px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 7px 8px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--bg);
+        color: var(--ink);
+        font-size: 13px;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: none;
+      }
+      input[type="number"] {
+        appearance: textfield;
+        -moz-appearance: textfield;
+      }
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        margin: 0;
+        appearance: none;
+      }
+      button:focus {
+        outline: none;
+        box-shadow: none;
+      }
+      button {
+        cursor: pointer;
+        border: none;
+        border-radius: 6px;
+        padding: 7px 12px;
+        font-size: 13px;
+        font-weight: 600;
+        background: var(--accent);
+        color: var(--accent-ink);
+      }
+      button.secondary {
+        background: transparent;
+        border: 1px solid var(--line);
+        color: var(--ink);
+        font-weight: 500;
+      }
+      button.danger {
+        background: transparent;
+        color: var(--danger);
+        border: 1px solid var(--danger);
+        font-weight: 500;
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+      .table-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 3px;
+        white-space: nowrap;
+      }
+      .table-actions button {
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+        line-height: 1;
+      }
+      .period-actions button.secondary,
+      .table-actions button.secondary {
+        color: var(--sub);
+      }
+      .period-actions button.danger,
+      .table-actions button.danger {
+        color: var(--danger);
+      }
+      .btnrow {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 6px 4px;
+        border-bottom: 1px solid var(--line);
+      }
+      th {
+        color: var(--sub);
+        font-weight: 500;
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+      td.num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .empty {
+        color: var(--sub);
+        font-style: italic;
+        padding: 8px 4px;
+      }
+      .empty-panel {
+        display: grid;
+        gap: 3px;
+        padding: 14px 12px;
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        color: var(--sub);
+        font-size: 12px;
+        text-align: center;
+      }
+      .empty-panel strong {
+        color: var(--ink);
+        font-size: 13px;
+        font-style: normal;
+      }
+      .empty-panel span {
+        font-style: normal;
+      }
+      tr.totalrow td {
+        border-top: 2px solid var(--line);
+        border-bottom: none;
+        font-weight: 700;
+      }
+      .summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
+        gap: 10px;
+      }
+      .dashboard-meta {
+        color: var(--sub);
+        font-size: 12px;
+        margin: -4px 0 12px;
+      }
+      .chart-title {
+        margin: 16px 0 8px;
+        color: var(--sub);
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+      .category-chart {
+        display: grid;
+        gap: 8px;
+      }
+      .chart-row {
+        display: grid;
+        grid-template-columns: minmax(80px, 0.3fr) minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+      }
+      .chart-track {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: var(--line);
+      }
+      .chart-fill {
+        height: 100%;
+        border-radius: inherit;
+        background: var(--accent);
+      }
+      .subsection-heading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 4px 0 10px;
+        color: var(--ink);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .subsection-heading::before {
+        width: 4px;
+        height: 18px;
+        border-radius: 999px;
+        background: var(--accent);
+        content: "";
+      }
+      .subsection-heading.expense::before {
+        background: var(--danger);
+      }
+      @media (max-width: 560px) {
+        .wrap {
+          padding-top: 14px;
+          padding-bottom: 44px;
+        }
+        .card {
+          padding: 12px;
+        }
+        .dashboard-grid {
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        }
+      }
+      .stat {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px 12px;
+      }
+      .stat .lbl {
+        font-size: 11px;
+        color: var(--sub);
+      }
+      .stat .val {
+        font-size: 18px;
+        font-weight: 700;
+        margin-top: 2px;
+        font-variant-numeric: tabular-nums;
+      }
+      .pos {
+        color: var(--good);
+      }
+      .neg {
+        color: var(--bad);
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 4px 10px;
+        margin: 2px 4px 2px 0;
+        font-size: 12px;
+      }
+      .chip button {
+        padding: 0;
+        background: none;
+        color: var(--danger);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .chip.editing {
+        height: 24px;
+        padding: 1px 8px;
+      }
+      .chip.editing input {
+        width: 150px;
+        min-width: 0;
+        height: 20px;
+        padding: 2px 7px;
+        background: var(--card);
+        font-size: 12px;
+      }
+      .chip.editing button {
+        height: 20px;
+        line-height: 20px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .chip.editing button:last-child {
+        color: var(--danger);
+      }
+      .overflow {
+        overflow-x: auto;
+      }
+      .table-pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 8px;
+        color: var(--sub);
+        font-size: 11px;
+      }
+      .table-pager button {
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+      .table-pager button:disabled {
+        cursor: default;
+        opacity: 0.45;
+      }
+      .period-list {
+        display: grid;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .period-list-label {
+        margin-top: 12px;
+        color: var(--sub);
+        font-size: 11px;
+      }
+      .period-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        min-height: 30px;
+        padding: 4px 8px;
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+      }
+      .period-item.clickable {
+        cursor: pointer;
+        transition:
+          border-color 140ms ease,
+          background 140ms ease;
+      }
+      .period-item.clickable:hover,
+      .period-item.clickable:focus-visible {
+        border-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 8%, var(--bg));
+        outline: none;
+      }
+      .period-item button {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        font-size: 14px;
+        line-height: 1;
+      }
+      .period-item > span:first-child {
+        flex: 0 0 110px;
+      }
+      .period-date {
+        cursor: pointer;
+        border-radius: 5px;
+        padding: 4px 6px;
+        transition:
+          background 140ms ease,
+          color 140ms ease;
+      }
+      .period-date:hover,
+      .period-date:focus-visible {
+        background: color-mix(in srgb, var(--accent) 16%, transparent);
+        color: var(--accent);
+        text-decoration: underline;
+        outline: none;
+      }
+      .period-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(70px, 1fr));
+        gap: 10px;
+        flex: 1;
+        min-width: 220px;
+      }
+      .period-stat {
+        display: grid;
+        gap: 1px;
+        font-size: 11px;
+      }
+      .period-stat label {
+        margin: 0;
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+      .period-stat strong {
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+      }
+      .period-actions {
+        display: flex;
+        gap: 3px;
+        margin-left: auto;
+      }
+      .period-item input {
+        width: 150px;
+        padding: 4px 6px;
+        font-size: 12px;
+      }
+      .period-item.editing input {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+        height: 24px;
+        padding: 2px 6px;
+      }
+      @media (max-width: 560px) {
+        .period-item .period-summary {
+          order: 3;
+          flex-basis: 100%;
+        }
+      }
+      .toast {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 10;
+        max-width: min(360px, calc(100vw - 32px));
+        padding: 10px 14px;
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        background: var(--card);
+        color: var(--ink);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+        opacity: 0;
+        transform: translateY(8px);
+        pointer-events: none;
+        transition:
+          opacity 160ms ease,
+          transform 160ms ease;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .quick-nav {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        padding: 8px 0;
+        margin: 0 0 14px;
+        background: color-mix(in srgb, var(--bg) 92%, transparent);
+        backdrop-filter: blur(10px);
+        scrollbar-width: none;
+      }
+      .quick-nav::-webkit-scrollbar {
+        display: none;
+      }
+      .quick-nav a {
+        flex: 0 0 auto;
+        padding: 6px 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        color: var(--sub);
+        font-size: 12px;
+        text-decoration: none;
+      }
+      .quick-nav a:hover,
+      .quick-nav a:focus-visible {
+        border-color: var(--accent);
+        color: var(--ink);
+        outline: none;
+      }
+      [id] {
+        scroll-margin-top: 58px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Semi-Monthly Budget Tracker</h1>
+      <div class="muted">
+        No database — everything lives in this page until you save it to a .txt
+        file. On Android Chrome, open the ⋮ menu and tap "Install app" / "Add to
+        Home screen" to use it like an app.
+      </div>
+
+      <nav class="quick-nav" aria-label="Sections">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#periodCard">Periods</a>
+        <a href="#activePeriodCard">Current</a>
+        <a href="#categoriesCard">Categories</a>
+        <a href="#savingsCard">Savings</a>
+        <a href="#saveLoadCard">Save / Load</a>
+      </nav>
+
+      <div class="card" id="dashboard">
+        <h2>Dashboard</h2>
+        <div class="dashboard-meta" id="dashboardPeriod">
+          No cutoff selected
+        </div>
+        <div class="dashboard-grid">
+          <div class="stat">
+            <div class="lbl">Current income</div>
+            <div class="val" id="dashIncome">₱0.00</div>
+          </div>
+          <div class="stat">
+            <div class="lbl">Current expenses</div>
+            <div class="val" id="dashExpenses">₱0.00</div>
+          </div>
+          <div class="stat">
+            <div class="lbl">Remaining</div>
+            <div class="val" id="dashRemaining">₱0.00</div>
+          </div>
+          <div class="stat">
+            <div class="lbl">Total saved</div>
+            <div class="val" id="dashTotal">₱0.00</div>
+          </div>
+        </div>
+        <div class="chart-title">Spending by category</div>
+        <div id="categoryChart" class="category-chart"></div>
+      </div>
+
+      <div class="card" id="periodCard">
+        <h2>Period</h2>
+        <div class="row">
+          <div>
+            <label>Cutoff date</label>
+            <input type="date" id="periodDate" />
+          </div>
+          <div>
+            <label>Salary for this cutoff</label>
+            <input
+              type="number"
+              id="salaryInput"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+        </div>
+        <div class="btnrow">
+          <button onclick="selectOrCreatePeriod()">Save Period</button>
+        </div>
+        <div class="period-list-label">Saved cutoff dates</div>
+        <div id="periodList" class="period-list"></div>
+        <div id="periodPager" class="table-pager"></div>
+      </div>
+
+      <div class="card" id="activePeriodCard" style="display: none">
+        <h2>Current Period: <span id="activePeriodLabel"></span></h2>
+
+        <div class="subsection-heading">Incoming</div>
+        <div class="row">
+          <div>
+            <label>Add income (allowance, refund, etc.)</label>
+            <input type="text" id="incDesc" placeholder="Description" />
+          </div>
+          <div>
+            <label>Date</label>
+            <input type="date" id="incDate" />
+          </div>
+          <div style="max-width: 130px">
+            <label>Amount</label>
+            <input type="number" id="incAmt" step="0.01" />
+          </div>
+          <div style="flex: 0 0 auto; align-self: flex-end">
+            <button onclick="addIncome()">Add</button>
+          </div>
+        </div>
+        <div class="overflow">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th class="num">Amount</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="incomeTable"></tbody>
+          </table>
+        </div>
+        <div id="incomePager" class="table-pager"></div>
+
+        <hr
+          style="
+            border: none;
+            border-top: 1px solid var(--line);
+            margin: 14px 0;
+          "
+        />
+
+        <div class="subsection-heading expense">Expenses</div>
+        <div class="row">
+          <div>
+            <label>Category</label>
+            <select id="expCat"></select>
+          </div>
+          <div>
+            <label>Description</label>
+            <input type="text" id="expDesc" placeholder="Description" />
+          </div>
+          <div>
+            <label>Date</label>
+            <input type="date" id="expDate" />
+          </div>
+          <div style="max-width: 130px">
+            <label>Amount</label>
+            <input type="number" id="expAmt" step="0.01" />
+          </div>
+          <div style="flex: 0 0 auto; align-self: flex-end">
+            <button onclick="addExpense()">Add</button>
+          </div>
+        </div>
+        <div class="overflow">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th class="num">Amount</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="expenseTable"></tbody>
+          </table>
+        </div>
+        <div id="expensePager" class="table-pager"></div>
+      </div>
+
+      <div class="card" id="categoriesCard">
+        <h2>Categories</h2>
+        <div id="categoryChips"></div>
+        <div class="row" style="margin-top: 10px">
+          <div>
+            <input
+              type="text"
+              id="newCatName"
+              placeholder="New category name"
+            />
+          </div>
+          <div style="flex: 0 0 auto">
+            <button onclick="addCategory()">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="savingsCard">
+        <h2>
+          Previous Savings (carried in from before you started using this app)
+        </h2>
+        <div class="row">
+          <div>
+            <input
+              type="number"
+              id="prevSavings"
+              step="0.01"
+              oninput="
+                updateState('previousSavings', parseFloat(this.value) || 0);
+                render();
+              "
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="saveLoadCard">
+        <h2>Save / Load</h2>
+        <div class="muted" id="syncStatus" style="margin-bottom: 8px">
+          Save a backup file or load one later. Changes also autosave in this
+          browser.
+        </div>
+        <div class="btnrow">
+          <button onclick="saveToFile()">Save</button>
+          <button
+            class="secondary"
+            onclick="document.getElementById('fileInput').click()"
+          >
+            Load
+          </button>
+          <input
+            type="file"
+            id="fileInput"
+            accept=".txt"
+            style="display: none"
+            onchange="loadFromFile(event)"
+          />
+        </div>
+      </div>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      let state = {
+        categories: ["Food", "Transportation", "Bills", "Others"],
+        periods: {}, // key: "YYYY-MM-DD" -> {salary, income:[{desc,amt}], expenses:[{cat,desc,amt}]}
+        previousSavings: 0,
+      };
+      let activePeriodKey = null;
+      let periodPage = 0;
+      let incomePage = 0;
+      let expensePage = 0;
+      const PAGE_SIZE = 8;
+      const LS_KEY = "budget-tracker-autosave";
+      const ui = {
+        periodDate: document.getElementById("periodDate"),
+        salaryInput: document.getElementById("salaryInput"),
+        periodList: document.getElementById("periodList"),
+        periodPager: document.getElementById("periodPager"),
+        incDesc: document.getElementById("incDesc"),
+        incDate: document.getElementById("incDate"),
+        incAmt: document.getElementById("incAmt"),
+        expCat: document.getElementById("expCat"),
+        expDesc: document.getElementById("expDesc"),
+        expDate: document.getElementById("expDate"),
+        expAmt: document.getElementById("expAmt"),
+        newCatName: document.getElementById("newCatName"),
+        categoryChips: document.getElementById("categoryChips"),
+        prevSavings: document.getElementById("prevSavings"),
+        activePeriodCard: document.getElementById("activePeriodCard"),
+        activePeriodLabel: document.getElementById("activePeriodLabel"),
+        incomeTable: document.getElementById("incomeTable"),
+        expenseTable: document.getElementById("expenseTable"),
+        incomePager: document.getElementById("incomePager"),
+        expensePager: document.getElementById("expensePager"),
+        dashboardPeriod: document.getElementById("dashboardPeriod"),
+        dashIncome: document.getElementById("dashIncome"),
+        dashExpenses: document.getElementById("dashExpenses"),
+        dashRemaining: document.getElementById("dashRemaining"),
+        dashTotal: document.getElementById("dashTotal"),
+        categoryChart: document.getElementById("categoryChart"),
+        syncStatus: document.getElementById("syncStatus"),
+        toast: document.getElementById("toast"),
+      };
+      function autosave() {
+        try {
+          localStorage.setItem(
+            LS_KEY,
+            JSON.stringify({ state, activePeriodKey }),
+          );
+        } catch (e) {
+          /* storage unavailable */
+        }
+      }
+      function autoload() {
+        try {
+          const raw = localStorage.getItem(LS_KEY);
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (parsed.state && parsed.state.categories && parsed.state.periods) {
+            applyLoadedState(
+              Object.assign({}, parsed.state, {
+                activePeriodKey: parsed.activePeriodKey,
+              }),
+            );
+          }
+        } catch (e) {
+          /* storage unavailable or corrupt */
+        }
+      }
+
+      function updateState(key, val) {
+        state[key] = val;
+      }
+
+      function emptyPeriod() {
+        return { salary: 0, income: [], expenses: [] };
+      }
+
+      function selectOrCreatePeriod() {
+        const d = ui.periodDate.value;
+        if (!d) {
+          alert("Pick a cutoff date first.");
+          return;
+        }
+        const salaryVal = parseFloat(ui.salaryInput.value) || 0;
+        if (!state.periods[d]) state.periods[d] = emptyPeriod();
+        if (salaryVal) state.periods[d].salary = salaryVal;
+        activePeriodKey = d;
+        periodPage = 0;
+        incomePage = 0;
+        expensePage = 0;
+        render();
+        ui.periodDate.value = "";
+        ui.salaryInput.value = "";
+        showToast("Cutoff period saved.");
+      }
+
+      function loadPeriod(periodKey) {
+        if (!state.periods[periodKey]) return;
+        activePeriodKey = periodKey;
+        periodPage = 0;
+        incomePage = 0;
+        expensePage = 0;
+        ui.periodDate.value = periodKey;
+        ui.salaryInput.value = state.periods[periodKey].salary || "";
+        render();
+      }
+
+      function clearPeriodData(periodKey) {
+        if (!state.periods[periodKey]) return;
+        if (!confirm(`Delete saved cutoff ${periodKey} and all its data?`))
+          return;
+        delete state.periods[periodKey];
+        if (activePeriodKey === periodKey) {
+          const remainingKeys = Object.keys(state.periods).sort();
+          activePeriodKey = remainingKeys.length
+            ? remainingKeys[remainingKeys.length - 1]
+            : null;
+        }
+        render();
+        showToast("Cutoff period deleted.");
+      }
+
+      function renamePeriod(oldDate) {
+        const item = document.querySelector(
+          `[data-period="${CSS.escape(oldDate)}"]`,
+        );
+        if (!item) return;
+        item.classList.add("editing");
+        const input = document.createElement("input");
+        input.type = "date";
+        input.value = oldDate;
+        const save = document.createElement("button");
+        save.type = "button";
+        save.textContent = "✓";
+        save.title = "Save date";
+        save.setAttribute("aria-label", "Save date");
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "secondary";
+        cancel.textContent = "✕";
+        cancel.title = "Cancel date edit";
+        cancel.setAttribute("aria-label", "Cancel date edit");
+        const actions = document.createElement("span");
+        actions.className = "period-actions";
+        actions.append(save, cancel);
+        item.replaceChildren(input, actions);
+        input.focus();
+        const finish = (saveChanges) => {
+          if (!saveChanges) return render();
+          const newDate = input.value;
+          if (!newDate || newDate === oldDate) return render();
+          if (state.periods[newDate]) {
+            alert("A cutoff with that date already exists.");
+            return;
+          }
+          state.periods[newDate] = state.periods[oldDate];
+          delete state.periods[oldDate];
+          if (activePeriodKey === oldDate) activePeriodKey = newDate;
+          render();
+          showToast("Cutoff date updated.");
+        };
+        save.addEventListener("click", () => finish(true));
+        cancel.addEventListener("click", () => finish(false));
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") finish(true);
+          if (event.key === "Escape") finish(false);
+        });
+      }
+
+      function addIncome() {
+        if (!activePeriodKey) return alert("Open a period first.");
+        const desc = ui.incDesc.value.trim();
+        const date = ui.incDate.value;
+        const amt = parseFloat(ui.incAmt.value);
+        if (!desc || !date || isNaN(amt)) return;
+        state.periods[activePeriodKey].income.push({ desc, date, amt });
+        ui.incDesc.value = "";
+        ui.incAmt.value = "";
+        render();
+        showToast("Income added.");
+      }
+      function editIncome(index) {
+        const item = state.periods[activePeriodKey].income[index];
+        const row =
+          ui.incomeTable.querySelectorAll("tr")[index - incomePage * PAGE_SIZE];
+        if (!item || !row) return;
+        const date = makeEditorCell("date", item.date || activePeriodKey);
+        const desc = makeEditorCell("text", item.desc);
+        const amt = makeEditorCell("number", item.amt);
+        const actions = makeEditorActions(() => {
+          const nextAmount = parseFloat(amt.input.value);
+          if (
+            !date.input.value ||
+            !desc.input.value.trim() ||
+            isNaN(nextAmount)
+          )
+            return;
+          Object.assign(item, {
+            date: date.input.value,
+            desc: desc.input.value.trim(),
+            amt: nextAmount,
+          });
+          render();
+          showToast("Income updated.");
+        });
+        row.replaceChildren(date.cell, desc.cell, amt.cell, actions);
+        date.input.focus();
+      }
+      function removeIncome(i) {
+        state.periods[activePeriodKey].income.splice(i, 1);
+        render();
+      }
+
+      function addExpense() {
+        if (!activePeriodKey) return alert("Open a period first.");
+        const cat = ui.expCat.value;
+        const desc = ui.expDesc.value.trim();
+        const date = ui.expDate.value;
+        const amt = parseFloat(ui.expAmt.value);
+        if (!desc || !date || isNaN(amt)) return;
+        state.periods[activePeriodKey].expenses.push({ cat, desc, date, amt });
+        ui.expDesc.value = "";
+        ui.expAmt.value = "";
+        render();
+        showToast("Expense added.");
+      }
+      function editExpense(index) {
+        const item = state.periods[activePeriodKey].expenses[index];
+        const row =
+          ui.expenseTable.querySelectorAll("tr")[
+            index - expensePage * PAGE_SIZE
+          ];
+        if (!item || !row) return;
+        const date = makeEditorCell("date", item.date || activePeriodKey);
+        const categoryCell = document.createElement("td");
+        const category = document.createElement("select");
+        state.categories.forEach((name) => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          option.selected = name === item.cat;
+          category.append(option);
+        });
+        categoryCell.append(category);
+        const desc = makeEditorCell("text", item.desc);
+        const amt = makeEditorCell("number", item.amt);
+        const actions = makeEditorActions(() => {
+          const nextAmount = parseFloat(amt.input.value);
+          if (
+            !date.input.value ||
+            !desc.input.value.trim() ||
+            isNaN(nextAmount)
+          )
+            return;
+          Object.assign(item, {
+            date: date.input.value,
+            cat: category.value,
+            desc: desc.input.value.trim(),
+            amt: nextAmount,
+          });
+          render();
+          showToast("Expense updated.");
+        });
+        row.replaceChildren(
+          date.cell,
+          categoryCell,
+          desc.cell,
+          amt.cell,
+          actions,
+        );
+        date.input.focus();
+      }
+      function removeExpense(i) {
+        state.periods[activePeriodKey].expenses.splice(i, 1);
+        render();
+      }
+
+      function makeEditorCell(type, value) {
+        const cell = document.createElement("td");
+        const input = document.createElement("input");
+        input.type = type;
+        input.value = value;
+        cell.append(input);
+        return { cell, input };
+      }
+
+      function makeEditorActions(onSave) {
+        const cell = document.createElement("td");
+        cell.className = "table-actions";
+        const save = document.createElement("button");
+        save.className = "secondary";
+        save.type = "button";
+        save.textContent = "✓";
+        save.title = "Save entry";
+        save.setAttribute("aria-label", "Save entry");
+        const cancel = document.createElement("button");
+        cancel.className = "danger";
+        cancel.type = "button";
+        cancel.textContent = "✕";
+        cancel.title = "Cancel edit";
+        cancel.setAttribute("aria-label", "Cancel edit");
+        save.addEventListener("click", onSave);
+        cancel.addEventListener("click", render);
+        cell.append(save, cancel);
+        return cell;
+      }
+
+      function addCategory() {
+        const name = ui.newCatName.value.trim();
+        if (!name) return;
+        if (!state.categories.includes(name)) state.categories.push(name);
+        ui.newCatName.value = "";
+        render();
+        showToast("Category added.");
+      }
+      function renameCategory(oldName) {
+        const chip = document.querySelector(
+          `[data-category="${CSS.escape(oldName)}"]`,
+        );
+        if (!chip) return;
+        chip.classList.add("editing");
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = oldName;
+        input.setAttribute("aria-label", "Category name");
+        const save = document.createElement("button");
+        save.type = "button";
+        save.className = "secondary";
+        save.textContent = "✓";
+        save.title = "Save category";
+        save.setAttribute("aria-label", "Save category");
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "danger";
+        cancel.textContent = "✕";
+        cancel.title = "Cancel category edit";
+        cancel.setAttribute("aria-label", "Cancel category edit");
+        chip.replaceChildren(input, save, cancel);
+        input.focus();
+        input.select();
+        const finish = (saveChanges) => {
+          if (!saveChanges) return render();
+          const name = input.value.trim();
+          if (!name || name === oldName) return render();
+          if (state.categories.includes(name)) return render();
+          state.categories = state.categories.map((c) =>
+            c === oldName ? name : c,
+          );
+          Object.values(state.periods).forEach((p) =>
+            p.expenses.forEach((e) => {
+              if (e.cat === oldName) e.cat = name;
+            }),
+          );
+          render();
+          showToast("Category updated.");
+        };
+        save.addEventListener("click", () => finish(true));
+        cancel.addEventListener("click", () => finish(false));
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") finish(true);
+          if (event.key === "Escape") finish(false);
+        });
+      }
+      function deleteCategory(name) {
+        if (
+          !confirm(
+            'Delete category "' + name + '"? Expenses keep their old label.',
+          )
+        )
+          return;
+        state.categories = state.categories.filter((c) => c !== name);
+        render();
+      }
+
+      function periodTotals(key) {
+        const p = state.periods[key];
+        const income = p.salary + p.income.reduce((s, i) => s + i.amt, 0);
+        const expenses = p.expenses.reduce((s, e) => s + e.amt, 0);
+        return { income, expenses, remaining: income - expenses };
+      }
+
+      function allTimeSaved() {
+        let total = state.previousSavings || 0;
+        Object.keys(state.periods).forEach(
+          (k) => (total += periodTotals(k).remaining),
+        );
+        return total;
+      }
+
+      function fmt(n) {
+        return (n < 0 ? "-" : "") + "₱" + Math.abs(n).toFixed(2);
+      }
+
+      const HTML_ESCAPES = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "'": "&#39;",
+        '"': "&quot;",
+      };
+
+      function escapeHTML(value) {
+        return String(value).replace(/[&<>'"]/g, (char) => HTML_ESCAPES[char]);
+      }
+
+      function localToday() {
+        const now = new Date();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        return `${now.getFullYear()}-${month}-${day}`;
+      }
+
+      function renderCategoryChart(period) {
+        ui.categoryChart.replaceChildren();
+        const totals = {};
+        period.expenses.forEach((expense) => {
+          totals[expense.cat] = (totals[expense.cat] || 0) + expense.amt;
+        });
+        const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+        if (!entries.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty-panel";
+          empty.innerHTML =
+            "<strong>No spending to visualize</strong><span>Add an expense to see category trends here.</span>";
+          ui.categoryChart.append(empty);
+          return;
+        }
+        const maxAmount = entries[0][1];
+        entries.forEach(([category, amount]) => {
+          const row = document.createElement("div");
+          row.className = "chart-row";
+          const label = document.createElement("span");
+          label.textContent = category;
+          const track = document.createElement("div");
+          track.className = "chart-track";
+          const fill = document.createElement("div");
+          fill.className = "chart-fill";
+          fill.style.width = `${(amount / maxAmount) * 100}%`;
+          track.append(fill);
+          const value = document.createElement("strong");
+          value.textContent = fmt(amount);
+          row.append(label, track, value);
+          ui.categoryChart.append(row);
+        });
+      }
+
+      function renderTablePager(container, page, total, onChange) {
+        container.replaceChildren();
+        const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        const currentPage = Math.min(page, pages - 1);
+        const previous = document.createElement("button");
+        previous.className = "secondary";
+        previous.textContent = "Previous";
+        previous.disabled = currentPage === 0;
+        previous.addEventListener("click", () => onChange(currentPage - 1));
+        const label = document.createElement("span");
+        label.textContent = total
+          ? `Page ${currentPage + 1} of ${pages}`
+          : "No rows";
+        const next = document.createElement("button");
+        next.className = "secondary";
+        next.textContent = "Next";
+        next.disabled = currentPage >= pages - 1;
+        next.addEventListener("click", () => onChange(currentPage + 1));
+        container.append(previous, label, next);
+      }
+
+      function render() {
+        // category select + chips
+        ui.expCat.innerHTML = state.categories
+          .map(
+            (c) => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`,
+          )
+          .join("");
+        ui.categoryChips.replaceChildren();
+        state.categories.forEach((c) => {
+          const chip = document.createElement("span");
+          chip.className = "chip";
+          chip.dataset.category = c;
+          chip.append(document.createTextNode(c + " "));
+
+          const edit = document.createElement("button");
+          edit.type = "button";
+          edit.textContent = "✎";
+          edit.style.color = "var(--sub)";
+          edit.addEventListener("click", () => renameCategory(c));
+
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.textContent = "✕";
+          remove.addEventListener("click", () => deleteCategory(c));
+
+          chip.append(edit, remove);
+          ui.categoryChips.append(chip);
+        });
+
+        const keys = Object.keys(state.periods).sort();
+        ui.periodList.replaceChildren();
+        if (!keys.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty-panel";
+          empty.innerHTML =
+            "<strong>No saved cutoffs yet</strong><span>Create a cutoff period above to get started.</span>";
+          ui.periodList.append(empty);
+        }
+        const periodPages = Math.max(1, Math.ceil(keys.length / PAGE_SIZE));
+        periodPage = Math.min(periodPage, periodPages - 1);
+        const periodStart = periodPage * PAGE_SIZE;
+        keys.slice(periodStart, periodStart + PAGE_SIZE).forEach((k) => {
+          const item = document.createElement("div");
+          item.className = "period-item clickable";
+          item.dataset.period = k;
+          item.tabIndex = 0;
+          item.setAttribute("role", "button");
+          item.setAttribute("aria-label", `Open cutoff ${k}`);
+          item.addEventListener("click", (event) => {
+            if (
+              !item.classList.contains("editing") &&
+              !event.target.closest("button")
+            )
+              loadPeriod(k);
+          });
+          item.addEventListener("keydown", (event) => {
+            if (
+              !item.classList.contains("editing") &&
+              (event.key === "Enter" || event.key === " ")
+            )
+              loadPeriod(k);
+          });
+          const date = document.createElement("span");
+          date.className = "period-date";
+          date.textContent = k;
+          date.title = "Open cutoff";
+          const totals = periodTotals(k);
+          const summary = document.createElement("div");
+          summary.className = "period-summary";
+          [
+            ["Incoming", totals.income],
+            ["Outgoing", totals.expenses],
+            ["Remaining", totals.remaining],
+          ].forEach(([label, value]) => {
+            const stat = document.createElement("div");
+            stat.className = "period-stat";
+            const statLabel = document.createElement("label");
+            statLabel.textContent = label;
+            const statValue = document.createElement("strong");
+            statValue.textContent = fmt(value);
+            statValue.style.color =
+              label === "Remaining"
+                ? value >= 0
+                  ? "var(--good)"
+                  : "var(--bad)"
+                : "var(--ink)";
+            stat.append(statLabel, statValue);
+            summary.append(stat);
+          });
+          const edit = document.createElement("button");
+          edit.type = "button";
+          edit.className = "secondary";
+          edit.textContent = "✎";
+          edit.title = "Edit date";
+          edit.setAttribute("aria-label", "Edit date");
+          edit.addEventListener("click", () => renamePeriod(k));
+          const clear = document.createElement("button");
+          clear.type = "button";
+          clear.className = "danger";
+          clear.textContent = "✕";
+          clear.title = "Delete period data";
+          clear.setAttribute("aria-label", "Delete period data");
+          clear.addEventListener("click", () => clearPeriodData(k));
+          const actions = document.createElement("span");
+          actions.className = "period-actions";
+          actions.append(edit, clear);
+          item.append(date, summary, actions);
+          ui.periodList.append(item);
+        });
+        renderTablePager(ui.periodPager, periodPage, keys.length, (page) => {
+          periodPage = page;
+          render();
+        });
+
+        ui.prevSavings.value = state.previousSavings || 0;
+
+        const card = ui.activePeriodCard;
+        if (activePeriodKey && state.periods[activePeriodKey]) {
+          if (!ui.incDate.value) ui.incDate.value = localToday();
+          if (!ui.expDate.value) ui.expDate.value = localToday();
+          ui.periodDate.value = activePeriodKey;
+          ui.salaryInput.value = state.periods[activePeriodKey].salary || "";
+          card.style.display = "block";
+          ui.activePeriodLabel.textContent = activePeriodKey;
+          const p = state.periods[activePeriodKey];
+          renderCategoryChart(p);
+
+          const incTotal = p.salary + p.income.reduce((s, i) => s + i.amt, 0);
+          const incomePages = Math.max(
+            1,
+            Math.ceil(p.income.length / PAGE_SIZE),
+          );
+          incomePage = Math.min(incomePage, incomePages - 1);
+          const incomeStart = incomePage * PAGE_SIZE;
+          ui.incomeTable.innerHTML =
+            (p.income.length
+              ? p.income
+                  .slice(incomeStart, incomeStart + PAGE_SIZE)
+                  .map((i, pageIndex) => {
+                    const index = incomeStart + pageIndex;
+                    return `<tr><td>${escapeHTML(i.date || activePeriodKey)}</td><td>${escapeHTML(i.desc)}</td><td class="num">${fmt(i.amt)}</td><td class="table-actions"><button class="secondary" onclick="editIncome(${index})" title="Edit income" aria-label="Edit income">✎</button><button class="danger" onclick="removeIncome(${index})" title="Delete income" aria-label="Delete income">✕</button></td></tr>`;
+                  })
+                  .join("")
+              : '<tr><td colspan="4"><div class="empty-panel"><strong>No extra income yet</strong><span>Add allowance, refunds, or other income above.</span></div></td></tr>') +
+            `<tr class="totalrow"><td colspan="2">Total (incl. salary)</td><td class="num">${fmt(incTotal)}</td><td></td></tr>`;
+          renderTablePager(
+            ui.incomePager,
+            incomePage,
+            p.income.length,
+            (page) => {
+              incomePage = page;
+              render();
+            },
+          );
+
+          const expTotal = p.expenses.reduce((s, e) => s + e.amt, 0);
+          const expensePages = Math.max(
+            1,
+            Math.ceil(p.expenses.length / PAGE_SIZE),
+          );
+          expensePage = Math.min(expensePage, expensePages - 1);
+          const expenseStart = expensePage * PAGE_SIZE;
+          ui.expenseTable.innerHTML =
+            (p.expenses.length
+              ? p.expenses
+                  .slice(expenseStart, expenseStart + PAGE_SIZE)
+                  .map((e, pageIndex) => {
+                    const index = expenseStart + pageIndex;
+                    return `<tr><td>${escapeHTML(e.date || activePeriodKey)}</td><td>${escapeHTML(e.cat)}</td><td>${escapeHTML(e.desc)}</td><td class="num">${fmt(e.amt)}</td><td class="table-actions"><button class="secondary" onclick="editExpense(${index})" title="Edit expense" aria-label="Edit expense">✎</button><button class="danger" onclick="removeExpense(${index})" title="Delete expense" aria-label="Delete expense">✕</button></td></tr>`;
+                  })
+                  .join("")
+              : '<tr><td colspan="5"><div class="empty-panel"><strong>No expenses yet</strong><span>Add your first expense above to start tracking.</span></div></td></tr>') +
+            `<tr class="totalrow"><td colspan="3">Total</td><td class="num">${fmt(expTotal)}</td><td></td></tr>`;
+          renderTablePager(
+            ui.expensePager,
+            expensePage,
+            p.expenses.length,
+            (page) => {
+              expensePage = page;
+              render();
+            },
+          );
+
+          const t = periodTotals(activePeriodKey);
+          ui.dashboardPeriod.textContent = "Cutoff " + activePeriodKey;
+          ui.dashIncome.textContent = fmt(t.income);
+          ui.dashExpenses.textContent = fmt(t.expenses);
+          ui.dashRemaining.textContent = fmt(t.remaining);
+          ui.dashRemaining.className =
+            "val " + (t.remaining >= 0 ? "pos" : "neg");
+        } else {
+          card.style.display = "none";
+          ui.incomePager.replaceChildren();
+          ui.expensePager.replaceChildren();
+          ui.dashboardPeriod.textContent = "No cutoff selected";
+          ui.dashIncome.textContent = fmt(0);
+          ui.dashExpenses.textContent = fmt(0);
+          ui.dashRemaining.textContent = fmt(0);
+          ui.dashRemaining.className = "val pos";
+          renderCategoryChart({ expenses: [] });
+        }
+
+        const total = allTimeSaved();
+        ui.dashTotal.textContent = fmt(total);
+        ui.dashTotal.className = "val " + (total >= 0 ? "pos" : "neg");
+
+        autosave();
+      }
+
+      let fileHandle = null;
+      const FSA_SUPPORTED = "showOpenFilePicker" in window;
+
+      function setSyncStatus(msg) {
+        ui.syncStatus.textContent = msg;
+      }
+
+      let toastTimer = null;
+      function showToast(message) {
+        ui.toast.textContent = message;
+        ui.toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => ui.toast.classList.remove("show"), 2600);
+      }
+
+      async function connectExisting() {
+        if (!FSA_SUPPORTED)
+          return alert(
+            "Your browser doesn't support direct file sync (this works in Chrome/Edge). Use Save/Load buttons instead.",
+          );
+        try {
+          const [handle] = await window.showOpenFilePicker({
+            types: [
+              { description: "Text files", accept: { "text/plain": [".txt"] } },
+            ],
+          });
+          fileHandle = handle;
+          await syncFromFile();
+          setSyncStatus(
+            'Connected to "' +
+              handle.name +
+              '" — Save writes here, Re-sync reads the latest from disk.',
+          );
+        } catch (e) {
+          /* user cancelled */
+        }
+      }
+
+      async function connectNew() {
+        if (!FSA_SUPPORTED)
+          return alert(
+            "Your browser doesn't support direct file sync (this works in Chrome/Edge). Use Save/Load buttons instead.",
+          );
+        try {
+          fileHandle = await window.showSaveFilePicker({
+            suggestedName: "budget-data.txt",
+            types: [
+              { description: "Text files", accept: { "text/plain": [".txt"] } },
+            ],
+          });
+          await saveToFile();
+          setSyncStatus(
+            'Connected to "' +
+              fileHandle.name +
+              '" — Save writes here, Re-sync reads the latest from disk.',
+          );
+        } catch (e) {
+          /* user cancelled */
+        }
+      }
+
+      async function syncFromFile() {
+        if (!fileHandle) return alert("No file connected yet.");
+        try {
+          const file = await fileHandle.getFile();
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+          if (!parsed.categories || !parsed.periods)
+            throw new Error("bad format");
+          applyLoadedState(parsed);
+          render();
+          showToast("Data re-synced from file.");
+        } catch (e) {
+          alert(
+            "Could not read the connected file (it may be empty or not in this app's format).",
+          );
+        }
+      }
+
+      function serializeState() {
+        // Bundle activePeriodKey alongside state so it round-trips through the .txt file too.
+        return JSON.stringify(
+          Object.assign({}, state, { activePeriodKey }),
+          null,
+          2,
+        );
+      }
+
+      function applyLoadedState(parsed) {
+        state = {
+          categories: parsed.categories,
+          periods: parsed.periods,
+          previousSavings: parsed.previousSavings || 0,
+        };
+        const keys = Object.keys(state.periods).sort();
+        activePeriodKey =
+          parsed.activePeriodKey && state.periods[parsed.activePeriodKey]
+            ? parsed.activePeriodKey
+            : keys.length
+              ? keys[keys.length - 1]
+              : null; // fall back to the most recent period
+      }
+
+      async function saveToFile() {
+        if (fileHandle) {
+          try {
+            const writable = await fileHandle.createWritable();
+            await writable.write(serializeState());
+            await writable.close();
+            setSyncStatus(
+              'Saved to "' +
+                fileHandle.name +
+                '" at ' +
+                new Date().toLocaleTimeString() +
+                ".",
+            );
+            showToast("Budget saved to connected file.");
+            return;
+          } catch (e) {
+            alert(
+              "Could not write to the connected file — falling back to download.",
+            );
+          }
+        }
+        const blob = new Blob([serializeState()], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "budget-data.txt";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast("Budget download started.");
+      }
+
+      function loadFromFile(evt) {
+        const file = evt.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const parsed = JSON.parse(e.target.result);
+            if (!parsed.categories || !parsed.periods)
+              throw new Error("bad format");
+            applyLoadedState(parsed);
+            render();
+            showToast("Budget loaded.");
+          } catch (err) {
+            alert(
+              "Could not read that file — is it a budget-data.txt saved by this app?",
+            );
+          }
+        };
+        reader.readAsText(file);
+        evt.target.value = "";
+      }
+
+      function clearPeriodInputs() {
+        document.getElementById("periodDate").value = "";
+        document.getElementById("salaryInput").value = "";
+      }
+
+      autoload();
+      render();
+      clearPeriodInputs();
+
+      // --- Installable web app (PWA) setup: manifest + icon + service worker ---
+      (function setupPWA() {
+        try {
+          function icon(size) {
+            const c = document.createElement("canvas");
+            c.width = size;
+            c.height = size;
+            const ctx = c.getContext("2d");
+            ctx.fillStyle = "#3d6b52";
+            ctx.fillRect(0, 0, size, size);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold " + Math.round(size * 0.56) + "px sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText("₱", size / 2, size / 2 + size * 0.03);
+            return c.toDataURL("image/png");
+          }
+          const icon192 = icon(192),
+            icon512 = icon(512);
+          document.getElementById("appleTouchIcon").href = icon192;
+
+          const manifest = {
+            name: "Semi-Monthly Budget Tracker",
+            short_name: "Budget",
+            start_url: location.href.split("#")[0],
+            scope: location.href.split("#")[0],
+            display: "standalone",
+            background_color: "#17181a",
+            theme_color: "#3d6b52",
+            icons: [
+              { src: icon192, sizes: "192x192", type: "image/png" },
+              { src: icon512, sizes: "512x512", type: "image/png" },
+              {
+                src: icon512,
+                sizes: "512x512",
+                type: "image/png",
+                purpose: "maskable",
+              },
+            ],
+          };
+          const manifestBlob = new Blob([JSON.stringify(manifest)], {
+            type: "application/manifest+json",
+          });
+          document.getElementById("manifestLink").href =
+            URL.createObjectURL(manifestBlob);
+
+          if ("serviceWorker" in navigator) {
+            const swCode = `
+        self.addEventListener('install', e => self.skipWaiting());
+        self.addEventListener('activate', e => self.clients.claim());
+        self.addEventListener('fetch', e => {
+          e.respondWith(
+            fetch(e.request).then(res => {
+              const copy = res.clone();
+              caches.open('budget-tracker-v1').then(c => c.put(e.request, copy)).catch(()=>{});
+              return res;
+            }).catch(() => caches.match(e.request))
+          );
+        });
+      `;
+            const swBlob = new Blob([swCode], {
+              type: "application/javascript",
+            });
+            navigator.serviceWorker
+              .register(URL.createObjectURL(swBlob))
+              .catch(() => {
+                /* offline caching unavailable in this environment; install/manifest still works */
+              });
+          }
+        } catch (e) {
+          /* PWA setup is a progressive enhancement — safe to skip on failure */
+        }
+      })();
+    </script>
+  </body>
+</html>
